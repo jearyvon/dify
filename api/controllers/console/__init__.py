@@ -81,6 +81,7 @@ from .auth import (
     login,
     oauth,
     oauth_server,
+    jk_user,
 )
 
 # Import billing controllers
@@ -218,4 +219,5 @@ __all__ = [
     "workflow_statistic",
     "workflow_trigger",
     "workspace",
+    "jk_user",
 ]
