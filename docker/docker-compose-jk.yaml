@@ -415,6 +415,8 @@ services:
       - ./.env
     environment:
       PORT: ${JK_WEB_PORT:-9000}
+      NEXT_PUBLIC_JK_DIFY_WEB: ${NEXT_PUBLIC_JK_DIFY_WEB:-http://10.1.228.47}
+      NEXT_PUBLIC_API_ORIGIN: ${NEXT_PUBLIC_API_ORIGIN:-http://10.1.228.47}
     expose:
       - "${JK_WEB_PORT:-9000}"
     # volumes:
