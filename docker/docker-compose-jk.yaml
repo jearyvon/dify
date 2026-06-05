@@ -411,6 +411,8 @@ services:
   jk_web:
     image: ${JK_WEB_IMAGE:-jk-web:1.0.0}
     restart: always
+    env_file:
+      - ./.env
     environment:
       PORT: ${JK_WEB_PORT:-9000}
     expose:
@@ -425,6 +427,8 @@ services:
   jk_api:
     image: ${JK_API_IMAGE:-jk-admin-server:1.0.0}
     restart: always
+    env_file:
+      - ./.env
     environment:
       PORT: ${JK_API_PORT:-8000}
       DIFY_PORT: ${JK_API_PORT:-8000}
