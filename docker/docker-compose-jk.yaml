@@ -417,9 +417,9 @@ services:
       PORT: ${JK_WEB_PORT:-9000}
     expose:
       - "${JK_WEB_PORT:-9000}"
-    volumes:
-      # Mount the data directory to the container, for storing persistent files.
-      - ${JK_WEB_HOST_VOLUME:-./volumes/jk_web/data}:/app
+    # volumes:
+    #   # Mount the data directory to the container, for storing persistent files.
+    #   - ${JK_WEB_HOST_VOLUME:-./volumes/jk_web/data}:/app
     networks:
       - default
 
@@ -434,9 +434,9 @@ services:
       DIFY_PORT: ${JK_API_PORT:-8000}
     expose:
       - "${JK_API_PORT:-8000}"
-    volumes:
-      # Mount the storage directory to the container, for storing persistent files.
-      - ${JK_API_HOST_VOLUME:-./volumes/jk_api/storage}:/app
+    # volumes:
+    #   # Mount the storage directory to the container, for storing persistent files.
+    #   - ${JK_API_HOST_VOLUME:-./volumes/jk_api/storage}:/app
     networks:
       - default
 
