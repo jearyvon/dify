@@ -5,6 +5,7 @@ WORKDIR /app/api
 COPY --chown=dify:dify api/controllers/console/__init__.py /app/api/controllers/console/__init__.py
 COPY --chown=dify:dify api/controllers/console/auth/jk_user.py /app/api/controllers/console/auth/jk_user.py
 COPY --chown=dify:dify api/services/jk_account_service.py /app/api/services/jk_account_service.py
+COPY --chown=dify:dify api/.env /app/api/.env
 # # 先备份官方虚拟环境
 # RUN cp -a /app/api/.venv /tmp/dify-venv && cp -a /app/api/pyproject.toml /tmp/pyproject.toml && cp -a /app/api/uv.lock /tmp/uv.lock
 # # 删除官方源码，避免新旧代码混用
