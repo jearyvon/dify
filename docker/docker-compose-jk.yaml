@@ -409,7 +409,7 @@ services:
 
   # Custom web application (listens on port 9000).
   jk_web:
-    image: ${JK_WEB_IMAGE:-jk-web:1.0.0}
+    image: jk-web:1.0.0
     restart: always
     env_file:
       - ./.env
@@ -425,7 +425,7 @@ services:
 
   # Custom web API (listens on port 8000).
   jk_api:
-    image: ${JK_API_IMAGE:-jk-admin-server:1.0.0}
+    image: jk-admin-server:1.0.0
     restart: always
     env_file:
       - ./.env
