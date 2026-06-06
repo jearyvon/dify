@@ -439,7 +439,7 @@ services:
       - "${JK_API_PORT:-8000}"
     volumes:
       # Mount the storage directory to the container, for storing persistent files.
-      - ${JK_API_HOST_VOLUME:-./volumes/jk_api/storage}:/app/uploads
+      - ${JK_API_HOST_VOLUME:-./volumes/jk_api/storage}:/app/storage
     networks:
       - default
 
