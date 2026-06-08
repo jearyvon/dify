@@ -372,7 +372,7 @@ services:
 
   # Frontend web application.
   web:
-    image: langgenius/dify-web:1.14.2
+    image: jk-agent/dify-web:1.14.2
     restart: always
     env_file:
       - path: ./envs/core-services/web.env
@@ -407,6 +407,8 @@ services:
       ENABLE_WEBSITE_JINAREADER: ${ENABLE_WEBSITE_JINAREADER:-true}
       ENABLE_WEBSITE_FIRECRAWL: ${ENABLE_WEBSITE_FIRECRAWL:-true}
       ENABLE_WEBSITE_WATERCRAWL: ${ENABLE_WEBSITE_WATERCRAWL:-true}
+    ports:
+      - "3000:3000"
 
   # Custom web application (listens on port 9000).
   jk_web:
