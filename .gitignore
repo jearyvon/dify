@@ -189,6 +189,8 @@ docker/volumes/mysql/*
 docker/volumes/seekdb/*
 !docker/volumes/oceanbase/init.d
 docker/volumes/iris/*
+docker/volumes/jk_api/*
+docker/volumes/jk_web/*
 
 docker/nginx/conf.d/default.conf
 docker/nginx/ssl/*
