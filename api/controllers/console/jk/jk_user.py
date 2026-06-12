@@ -1,5 +1,5 @@
 import logging
-
+import flask_login
 from flask import make_response, request
 from flask_restx import Resource
 from pydantic import BaseModel, Field
@@ -22,6 +22,9 @@ from libs.datetime_utils import naive_utc_now
 from libs.helper import EmailStr, extract_remote_ip
 from libs.helper import timezone as validate_timezone
 from libs.token import (
+    clear_access_token_from_cookie,
+    clear_csrf_token_from_cookie,
+    clear_refresh_token_from_cookie,
     set_access_token_to_cookie,
     set_csrf_token_to_cookie,
     set_refresh_token_to_cookie,
@@ -30,9 +33,9 @@ from models import AccountStatus
 from models.account import Tenant
 from services.account_service import AccountService, RegisterService, TenantService
 from services.errors.account import AccountRegisterError, TenantNotFoundError
-from services.jk_account_service import JKTenantService
+from services.jk.jk_account_service import JKTenantService
 
-from .login import _get_account_with_case_fallback
+from auth.login import _get_account_with_case_fallback
 
 logger = logging.getLogger(__name__)
 
@@ -46,9 +49,10 @@ class JkAuthSyncPayload(BaseModel):
 class JkLoginPayload(BaseModel):
     remember_me: bool = Field(default=True, description="Remember me flag")
     user_id: str = Field(description="User ID")
+class JkLogoutPayload(BaseModel):
+    user_id: str = Field(description="User ID")
 
-
-register_schema_models(console_ns, JkAuthSyncPayload, JkLoginPayload)
+register_schema_models(console_ns, JkAuthSyncPayload, JkLoginPayload, JkLogoutPayload)
 
 
 @console_ns.route("/_jk_login")
@@ -77,7 +81,24 @@ class LoginApi(Resource):
 
         return response
 
+@console_ns.route("/_jk_logout")
+class LogoutApi(Resource):
+    """Resource for user logout."""
+    def post(self):
+        """Logout user."""
+        args = JkLogoutPayload.model_validate(console_ns.payload)
+        account = AccountService.load_logged_in_account(account_id=args.user_id)
+        if account is None:
+            raise AccountNotFound()
+        AccountService.logout(account=account)
+        flask_login.logout_user()
+        response = make_response({"result": "success"})
+        # Clear cookies on logout
+        clear_access_token_from_cookie(response)
+        clear_refresh_token_from_cookie(response)
+        clear_csrf_token_from_cookie(response)
 
+        return response
 @console_ns.route("/_jk_user_create")
 class UserCreateApi(Resource):
     """Resource for user login."""

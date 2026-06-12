@@ -80,8 +80,7 @@ from .auth import (
     forgot_password,
     login,
     oauth,
-    oauth_server,
-    jk_user,
+    oauth_server
 )
 
 # Import billing controllers
@@ -136,7 +135,10 @@ from .workspace import (
     trigger_providers,
     workspace,
 )
-
+from .jk import (
+    jk_user,
+    jk_app, 
+)
 api.add_namespace(console_ns)
 
 __all__ = [
@@ -220,4 +222,5 @@ __all__ = [
     "workflow_trigger",
     "workspace",
     "jk_user",
+    "jk_app",
 ]

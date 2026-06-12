@@ -3,24 +3,8 @@ FROM langgenius/dify-api:1.14.2
 USER root
 WORKDIR /app/api
 COPY --chown=dify:dify api/controllers/console/__init__.py /app/api/controllers/console/__init__.py
-COPY --chown=dify:dify api/controllers/console/auth/jk_user.py /app/api/controllers/console/auth/jk_user.py
-COPY --chown=dify:dify api/services/jk_account_service.py /app/api/services/jk_account_service.py
-COPY --chown=dify:dify api/.env /app/api/.env
-# # 先备份官方虚拟环境
-# RUN cp -a /app/api/.venv /tmp/dify-venv && cp -a /app/api/pyproject.toml /tmp/pyproject.toml && cp -a /app/api/uv.lock /tmp/uv.lock
-# # 删除官方源码，避免新旧代码混用
-# RUN find /app/api -mindepth 1 -maxdepth 1 ! -name ".venv" -exec rm -rf {} +
-
-# # 复制你的完整 api 源码
-# COPY --chown=dify:dify api/ /app/api/
-
-# # 恢复官方虚拟环境
-# RUN rm -rf /app/api/.venv && cp -a /tmp/dify-venv /app/api/.venv && chown -R dify:dify /app/api
-# RUN rm -rf /app/api/pyproject.toml && cp -a /tmp/pyproject.toml /app/api/pyproject.toml
-# RUN rm -rf /app/api/uv.lock && cp -a /tmp/uv.lock /app/api/uv.lock
-
-# # Prepare entrypoint script
-# WORKDIR /app/api
-# COPY --chown=dify:dify --chmod=755 api/docker/entrypoint.sh /entrypoint.sh
-
+# 拷贝jk相关的代码
+COPY --chown=dify:dify api/controllers/console/jk /app/api/controllers/console/jk
+# 拷贝JK services代码
+COPY --chown=dify:dify api/services/jk /app/api/services/jk
 USER dify
