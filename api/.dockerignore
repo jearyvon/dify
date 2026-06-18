@@ -17,3 +17,10 @@ logs
 
 # venv
 .venv
+
+!api/services/jk
+!api/services/jk/**
+
+!api/controllers/console/__init__.py
+!api/controllers/console/jk
+!api/controllers/console/jk/**
