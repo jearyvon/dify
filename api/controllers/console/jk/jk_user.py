@@ -66,6 +66,7 @@ class JkAuthSyncPayload(BaseModel):
     name: str = Field(..., description="User name")
     email: EmailStr = Field(..., description="User email")
     password: str = Field(..., description="User password")
+    role: str = Field(default="normal", description="User role")
     tenant_id: str | None = Field(default=None, description="Tenant ID; uses default workspace when omitted")
 
 class JkLoginPayload(BaseModel):
@@ -261,9 +262,8 @@ class UserCreateApi(Resource):
         normalized_email = args.email.lower()
         tenant = _resolve_tenant(args.tenant_id)
         account = _create_account(args.name, normalized_email, args.password)
-        TenantService.create_tenant_member(tenant, account, role="normal")
+        TenantService.create_tenant_member(tenant, account, role=args.role)
         TenantService.switch_tenant(account, tenant.id)
-
         return {
             "result": "success",
             "data": {
@@ -271,6 +271,7 @@ class UserCreateApi(Resource):
                 "email": account.email,
                 "name": account.name,
                 "tenant_id": tenant.id,
+                "role": args.role,
             },
         }
 
