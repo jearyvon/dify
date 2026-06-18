@@ -43,7 +43,7 @@ from services.errors.account import (
 )
 from services.jk.jk_account_service import JKTenantService
 
-from auth.login import _get_account_with_case_fallback
+from controllers.console.auth.login import _get_account_with_case_fallback
 
 logger = logging.getLogger(__name__)
 
