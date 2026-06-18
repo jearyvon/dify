@@ -226,7 +226,7 @@ services:
   # API service
   api:
     <<: *shared-api-worker-config
-    image: dify-api-jk:1.0.0 
+    image: jk-agent/dify-api:1.14.2
     environment:
       MODE: api
       SENTRY_DSN: ${API_SENTRY_DSN:-}
