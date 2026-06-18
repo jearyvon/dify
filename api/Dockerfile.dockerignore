@@ -1,0 +1,17 @@
+# Whitelist build context for api/Dockerfile.jk COPY instructions.
+# Keep in sync with COPY paths in Dockerfile.jk.
+**
+!api/
+!api/controllers/
+!api/controllers/console/
+!api/controllers/console/__init__.py
+!api/controllers/console/jk/
+!api/controllers/console/jk/**
+!api/services/
+!api/services/jk/
+!api/services/jk/**
+
+.git
+api/.env
+api/.env.*
+api/.venv

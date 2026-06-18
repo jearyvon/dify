@@ -77,6 +77,28 @@ build_web() {
 
 build_api() {
     echo "Building api image: ${API_IMAGE}"
+
+    local dockerignore_backup=""
+    local had_dockerignore=false
+
+    if [[ -f .dockerignore ]]; then
+        had_dockerignore=true
+        dockerignore_backup="$(mktemp)"
+        cp .dockerignore "${dockerignore_backup}"
+    fi
+
+    restore_dockerignore() {
+        if [[ "${had_dockerignore}" == true ]]; then
+            cp "${dockerignore_backup}" .dockerignore
+            rm -f "${dockerignore_backup}"
+        else
+            rm -f .dockerignore
+        fi
+    }
+
+    trap restore_dockerignore RETURN
+    cp api/Dockerfile.dockerignore .dockerignore
+
     docker build -f api/Dockerfile.jk -t "${API_IMAGE}" .
 }
 
