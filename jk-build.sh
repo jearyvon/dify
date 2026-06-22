@@ -70,6 +70,7 @@ build_web() {
     echo "Building web image: ${WEB_IMAGE}"
     docker build \
         --build-arg NEXT_PUBLIC_BASE_PATH=/web \
+        --build-arg NEXT_PUBLIC_ALLOW_EMBED=true \
         -f web/Dockerfile.jk \
         -t "${WEB_IMAGE}" \
         .
