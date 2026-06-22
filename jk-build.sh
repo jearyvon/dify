@@ -66,18 +66,17 @@ fi
 WEB_IMAGE="jk-agent/dify-web:${version}"
 API_IMAGE="jk-agent/dify-api:${version}"
 
-build_web() {
-    echo "Building web image: ${WEB_IMAGE}"
-    docker build \
-        --build-arg NEXT_PUBLIC_BASE_PATH=/web \
-        --build-arg NEXT_PUBLIC_ALLOW_EMBED=true \
-        -f web/Dockerfile.jk \
-        -t "${WEB_IMAGE}" \
-        .
-}
+# If {module}/Dockerfile.dockerignore exists, temporarily use it as root .dockerignore
+# for the build command, then restore or remove it when the function returns or fails.
+with_module_dockerignore() {
+    local module="$1"
+    shift
+    local module_dockerignore="${module}/Dockerfile.dockerignore"
 
-build_api() {
-    echo "Building api image: ${API_IMAGE}"
+    if [[ ! -f "${module_dockerignore}" ]]; then
+        "$@"
+        return $?
+    fi
 
     local dockerignore_backup=""
     local had_dockerignore=false
@@ -98,9 +97,24 @@ build_api() {
     }
 
     trap restore_dockerignore RETURN
-    cp api/Dockerfile.dockerignore .dockerignore
+    cp "${module_dockerignore}" .dockerignore
 
-    docker build -f api/Dockerfile.jk -t "${API_IMAGE}" .
+    "$@"
+}
+
+build_web() {
+    echo "Building web image: ${WEB_IMAGE}"
+    with_module_dockerignore web docker build \
+        --build-arg NEXT_PUBLIC_BASE_PATH=/web \
+        --build-arg NEXT_PUBLIC_ALLOW_EMBED=true \
+        -f web/Dockerfile.jk \
+        -t "${WEB_IMAGE}" \
+        .
+}
+
+build_api() {
+    echo "Building api image: ${API_IMAGE}"
+    with_module_dockerignore api docker build -f api/Dockerfile.jk -t "${API_IMAGE}" .
 }
 
 build_all() {
