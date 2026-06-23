@@ -105,11 +105,12 @@ with_module_dockerignore() {
 build_web() {
     echo "Building web image: ${WEB_IMAGE}"
     with_module_dockerignore web docker build \
-        --build-arg NEXT_PUBLIC_BASE_PATH=/web \
-        --build-arg NEXT_PUBLIC_ALLOW_EMBED=true \
-        -f web/Dockerfile.jk \
-        -t "${WEB_IMAGE}" \
-        .
+    --progress=plain \
+    --build-arg NEXT_PUBLIC_BASE_PATH=/web \
+    --build-arg NEXT_PUBLIC_ALLOW_EMBED=true \
+    -f web/Dockerfile.jk \
+    -t "${WEB_IMAGE}" \
+    .
 }
 
 build_api() {
