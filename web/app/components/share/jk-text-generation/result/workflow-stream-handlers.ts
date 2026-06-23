@@ -17,7 +17,7 @@ type CreateWorkflowStreamHandlersParams = {
   isTimedOut: () => boolean
   markEnded: () => void
   notify: Notify
-  onCompleted: (completionRes: string, taskId?: number, success?: boolean) => void
+  onCompleted: (completionRes: string, taskId?: number, success?: boolean, totalTokens?: number) => void
   resetRunState: () => void
   setCompletionRes: (res: string) => void
   setCurrentTaskId: Dispatch<SetStateAction<string | null>>
@@ -273,18 +273,18 @@ export const createWorkflowStreamHandlers = ({
 }: CreateWorkflowStreamHandlersParams): IOtherOptions => {
   let tempMessageId = ''
 
-  const finishWithFailure = () => {
+  const finishWithFailure = (totalTokens = 0) => {
     setRespondingFalse()
     resetRunState()
-    onCompleted(getCompletionRes(), taskId, false)
+    onCompleted(getCompletionRes(), taskId, false, totalTokens)
     markEnded()
   }
 
-  const finishWithSuccess = () => {
+  const finishWithSuccess = (totalTokens = 0) => {
     setRespondingFalse()
     resetRunState()
     setMessageId(tempMessageId)
-    onCompleted(getCompletionRes(), taskId, true)
+    onCompleted(getCompletionRes(), taskId, true, totalTokens)
     markEnded()
   }
 
@@ -338,14 +338,14 @@ export const createWorkflowStreamHandlers = ({
       const workflowStatus = data.status as WorkflowRunningStatus | undefined
       if (workflowStatus === WorkflowRunningStatus.Stopped) {
         setWorkflowProcessData(applyWorkflowFinishedState(getWorkflowProcessData(), WorkflowRunningStatus.Stopped))
-        finishWithFailure()
+        finishWithFailure(data.total_tokens)
         return
       }
 
       if (data.error) {
         notify({ type: 'error', message: data.error })
         setWorkflowProcessData(applyWorkflowFinishedState(getWorkflowProcessData(), WorkflowRunningStatus.Failed))
-        finishWithFailure()
+        finishWithFailure(data.total_tokens)
         return
       }
 
@@ -362,7 +362,7 @@ export const createWorkflowStreamHandlers = ({
         }
       }
 
-      finishWithSuccess()
+      finishWithSuccess(data.total_tokens)
     },
     onTextChunk: ({ data: { text } }) => {
       setWorkflowProcessData(appendResultText(getWorkflowProcessData(), text))

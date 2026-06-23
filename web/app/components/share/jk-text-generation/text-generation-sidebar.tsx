@@ -1,19 +1,12 @@
 import type { FC, RefObject } from 'react'
 import type { InputValueTypes, TextGenerationCustomConfig, TextGenerationRunControl } from './types'
+import type { AccessMode } from '@/models/access-control'
 import type { PromptConfig, SavedMessage, TextToSpeechConfig } from '@/models/debug'
 import type { SiteInfo } from '@/models/share'
 import type { VisionFile, VisionSettings } from '@/types/app'
 import type { SystemFeatures } from '@/types/feature'
 import { cn } from '@langgenius/dify-ui/cn'
-import { useTranslation } from 'react-i18next'
 import SavedItems from '@/app/components/app/text-generate/saved-items'
-import AppIcon from '@/app/components/base/app-icon'
-import Badge from '@/app/components/base/badge'
-import DifyLogo from '@/app/components/base/logo/dify-logo'
-import { appDefaultIconBackground } from '@/config'
-import { AccessMode } from '@/models/access-control'
-import TabHeader from '../../base/tab-header'
-import MenuDropdown from './menu-dropdown'
 import RunBatch from './run-batch'
 import RunOnce from './run-once'
 
@@ -44,7 +37,7 @@ type TextGenerationSidebarProps = {
 }
 
 const TextGenerationSidebar: FC<TextGenerationSidebarProps> = ({
-  accessMode,
+  accessMode: _accessMode,
   allTasksRun,
   currentTab,
   customConfig,
@@ -52,7 +45,7 @@ const TextGenerationSidebar: FC<TextGenerationSidebarProps> = ({
   inputsRef,
   isInstalledApp,
   isPC,
-  isWorkflow,
+  isWorkflow: _isWorkflow,
   onBatchSend,
   onInputsChange,
   onRemoveSavedMessage,
@@ -64,12 +57,10 @@ const TextGenerationSidebar: FC<TextGenerationSidebarProps> = ({
   runControl,
   savedMessages,
   siteInfo,
-  systemFeatures,
+  systemFeatures: _systemFeatures,
   textToSpeechConfig,
   visionConfig,
 }) => {
-  const { t } = useTranslation()
-
   return (
     <div
       className={cn(
@@ -78,22 +69,12 @@ const TextGenerationSidebar: FC<TextGenerationSidebarProps> = ({
         isInstalledApp && 'rounded-l-2xl',
       )}
     >
-      <div className={cn('shrink-0 space-y-4 border-b border-divider-subtle', isPC ? 'bg-components-panel-bg p-8 pb-0' : 'p-4 pb-0')}>
-        <div className="flex items-center gap-3">
-          <AppIcon
-            size={isPC ? 'large' : 'small'}
-            iconType={siteInfo.icon_type}
-            icon={siteInfo.icon}
-            background={siteInfo.icon_background || appDefaultIconBackground}
-            imageUrl={siteInfo.icon_url}
-          />
-          <div className="grow truncate system-md-semibold text-text-secondary">{siteInfo.title}</div>
-          <MenuDropdown hideLogout={isInstalledApp || accessMode === AccessMode.PUBLIC} data={siteInfo} />
-        </div>
+      <div className={cn('shrink-0 space-y-4 border-b border-divider-subtle', isPC ? 'bg-components-panel-bg p-10 pb-0' : 'p-4 pb-0')}>
         {siteInfo.description && (
           <div className="system-xs-regular text-text-tertiary">{siteInfo.description}</div>
         )}
-        <TabHeader
+        <div className="h-5 w-full py-3"></div>
+        {/* <TabHeader
           items={[
             { id: 'create', name: t('generation.tabs.create', { ns: 'share' }) },
             { id: 'batch', name: t('generation.tabs.batch', { ns: 'share' }) },
@@ -115,7 +96,7 @@ const TextGenerationSidebar: FC<TextGenerationSidebarProps> = ({
           ]}
           value={currentTab}
           onChange={onTabChange}
-        />
+        /> */}
       </div>
       <div
         className={cn(
@@ -154,22 +135,6 @@ const TextGenerationSidebar: FC<TextGenerationSidebarProps> = ({
           />
         )}
       </div>
-      {!customConfig?.remove_webapp_brand && (
-        <div
-          className={cn(
-            'flex shrink-0 items-center gap-1.5 bg-components-panel-bg py-3',
-            isPC ? 'px-8' : 'px-4',
-            !isPC && resultExisted && 'rounded-b-2xl border-b-[0.5px] border-divider-regular',
-          )}
-        >
-          <div className="system-2xs-medium-uppercase text-text-tertiary">{t('chat.poweredBy', { ns: 'share' })}</div>
-          {systemFeatures.branding.enabled && systemFeatures.branding.workspace_logo
-            ? <img src={systemFeatures.branding.workspace_logo} alt="logo" className="block h-5 w-auto" />
-            : customConfig?.replace_webapp_logo
-              ? <img src={customConfig.replace_webapp_logo} alt="logo" className="block h-5 w-auto" />
-              : <DifyLogo size="small" />}
-        </div>
-      )}
     </div>
   )
 }

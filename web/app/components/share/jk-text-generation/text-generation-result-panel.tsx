@@ -7,7 +7,7 @@ import type { VisionFile, VisionSettings } from '@/types/app'
 import { cn } from '@langgenius/dify-ui/cn'
 import { useTranslation } from 'react-i18next'
 import Loading from '@/app/components/base/loading'
-import Res from '@/app/components/share/text-generation/result'
+import Res from '@/app/components/share/jk-text-generation/result'
 import ResDownload from './run-batch/res-download'
 import { TaskStatus } from './types'
 

@@ -1,28 +1,28 @@
 import type { ChangeEvent, FC, FormEvent } from 'react'
 import type { InputValueTypes } from '../types'
 import type { FileEntity } from '@/app/components/base/file-uploader/types'
+import type { FileUploadConfigResponse } from '@/models/common'
 import type { PromptConfig } from '@/models/debug'
 import type { SiteInfo } from '@/models/share'
 import type { VisionFile, VisionSettings } from '@/types/app'
 import { Button } from '@langgenius/dify-ui/button'
 import { cn } from '@langgenius/dify-ui/cn'
 import { Select, SelectContent, SelectItem, SelectItemIndicator, SelectItemText, SelectTrigger } from '@langgenius/dify-ui/select'
-import {
-  RiLoader2Line,
-  RiPlayLargeLine,
-} from '@remixicon/react'
 import * as React from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { FileUploaderInAttachmentWrapper } from '@/app/components/base/file-uploader'
-import { StopCircle } from '@/app/components/base/icons/src/vender/solid/mediaAndDevices'
-import TextGenerationImageUploader from '@/app/components/base/image-uploader/text-generation-image-uploader'
+import JkFileUploaderInAttachmentWrapper from '@/app/components/base/file-uploader/jk-file-uploader-in-attachment'
+import JkTextGenerationImageUploader from '@/app/components/base/image-uploader/jk-text-generation-image-uploader'
 import Input from '@/app/components/base/input'
 import Textarea from '@/app/components/base/textarea'
 import BoolInput from '@/app/components/workflow/nodes/_base/components/before-run-form/bool-input'
 import CodeEditor from '@/app/components/workflow/nodes/_base/components/editor/code-editor'
 import { CodeLanguage } from '@/app/components/workflow/nodes/code/types'
 import useBreakpoints, { MediaType } from '@/hooks/use-breakpoints'
+
+type VisionConfigWithFileUpload = VisionSettings & {
+  fileUploadConfig?: FileUploadConfigResponse
+}
 
 type IRunOnceProps = {
   siteInfo: SiteInfo
@@ -51,7 +51,8 @@ const RunOnce: FC<IRunOnceProps> = ({
   const { t } = useTranslation()
   const media = useBreakpoints()
   const isPC = media === MediaType.pc
-  const [isInitialized, setIsInitialized] = useState(false)
+  const visionConfigWithUpload = visionConfig as VisionConfigWithFileUpload
+  const isFormReady = Object.keys(inputs).length > 0
 
   const onClear = () => {
     const newInputs: Record<string, InputValueTypes> = {}
@@ -81,15 +82,15 @@ const RunOnce: FC<IRunOnceProps> = ({
     runControl?.onStop?.()
   }, [isRunning, runControl])
 
-  const handleInputsChange = useCallback((newInputs: Record<string, any>) => {
+  const handleInputsChange = useCallback((newInputs: Record<string, InputValueTypes>) => {
     onInputsChange(newInputs)
     inputsRef.current = newInputs
   }, [onInputsChange, inputsRef])
 
   useEffect(() => {
-    if (isInitialized)
+    if (Object.keys(inputs).length > 0)
       return
-    const newInputs: Record<string, any> = {}
+    const newInputs: Record<string, InputValueTypes> = {}
     promptConfig.prompt_variables.forEach((item) => {
       if (item.type === 'select')
         newInputs[item.key] = item.default
@@ -107,15 +108,14 @@ const RunOnce: FC<IRunOnceProps> = ({
         newInputs[item.key] = undefined
     })
     onInputsChange(newInputs)
-    setIsInitialized(true)
-  }, [promptConfig.prompt_variables, onInputsChange])
+  }, [promptConfig.prompt_variables, onInputsChange, inputs])
 
   return (
     <div className="">
       <section>
         {/* input form */}
         <form onSubmit={onSubmit}>
-          {(inputs === null || inputs === undefined || Object.keys(inputs).length === 0) || !isInitialized
+          {!isFormReady
             ? null
             : promptConfig.prompt_variables.filter(item => item.hide !== true).map(item => (
                 <div className="mt-4 w-full" key={item.key}>
@@ -182,25 +182,24 @@ const RunOnce: FC<IRunOnceProps> = ({
                       />
                     )}
                     {item.type === 'file' && (
-                      <FileUploaderInAttachmentWrapper
+                      <JkFileUploaderInAttachmentWrapper
                         value={inputs[item.key] && typeof inputs[item.key] === 'object' && !Array.isArray(inputs[item.key])
                           ? [inputs[item.key] as FileEntity]
                           : []}
                         onChange={(files) => { handleInputsChange({ ...inputsRef.current, [item.key]: files[0] }) }}
                         fileConfig={{
                           ...item.config,
-                          fileUploadConfig: (visionConfig as any).fileUploadConfig,
+                          fileUploadConfig: visionConfigWithUpload.fileUploadConfig,
                         }}
                       />
                     )}
                     {item.type === 'file-list' && (
-                      <FileUploaderInAttachmentWrapper
+                      <JkFileUploaderInAttachmentWrapper
                         value={Array.isArray(inputs[item.key]) ? inputs[item.key] as FileEntity[] : []}
                         onChange={(files) => { handleInputsChange({ ...inputsRef.current, [item.key]: files }) }}
                         fileConfig={{
                           ...item.config,
-                          // eslint-disable-next-line ts/no-explicit-any
-                          fileUploadConfig: (visionConfig as any).fileUploadConfig,
+                          fileUploadConfig: visionConfigWithUpload.fileUploadConfig,
                         }}
                       />
                     )}
@@ -210,7 +209,7 @@ const RunOnce: FC<IRunOnceProps> = ({
                         value={inputs[item.key] as string}
                         onChange={(value) => { handleInputsChange({ ...inputsRef.current, [item.key]: value }) }}
                         noWrapper
-                        className="bg h-[80px] overflow-y-auto rounded-[10px] bg-components-input-bg-normal p-1"
+                        className="h-[80px] overflow-y-auto rounded-[10px] bg-components-input-bg-normal p-1"
                         placeholder={
                           <div className="whitespace-pre">{typeof item.json_schema === 'string' ? item.json_schema : JSON.stringify(item.json_schema || '', null, 2)}</div>
                         }
@@ -224,7 +223,7 @@ const RunOnce: FC<IRunOnceProps> = ({
               <div className="mt-4 w-full">
                 <div className="flex h-6 items-center system-md-semibold text-text-secondary">{t('imageUploader.imageUpload', { ns: 'common' })}</div>
                 <div className="mt-1">
-                  <TextGenerationImageUploader
+                  <JkTextGenerationImageUploader
                     settings={visionConfig}
                     onFilesChange={files => onVisionFilesChange(files.filter(file => file.progress !== -1).map(fileItem => ({
                       type: 'image',
@@ -256,14 +255,14 @@ const RunOnce: FC<IRunOnceProps> = ({
                   ? (
                       <>
                         {runControl?.isStopping
-                          ? <RiLoader2Line className="mr-1 h-4 w-4 shrink-0 animate-spin" aria-hidden="true" />
-                          : <StopCircle className="mr-1 h-4 w-4 shrink-0" aria-hidden="true" />}
+                          ? <span className="mr-1 i-ri-loader-2-line h-4 w-4 shrink-0 animate-spin" aria-hidden="true" />
+                          : <span className="mr-1 i-ri-stop-circle-fill h-4 w-4 shrink-0" aria-hidden="true" />}
                         <span className="text-[13px]">{stopLabel}</span>
                       </>
                     )
                   : (
                       <>
-                        <RiPlayLargeLine className="mr-1 h-4 w-4 shrink-0" aria-hidden="true" />
+                        <span className="mr-1 i-ri-play-large-line h-4 w-4 shrink-0" aria-hidden="true" />
                         <span className="text-[13px]">{t('generation.run', { ns: 'share' })}</span>
                       </>
                     )}

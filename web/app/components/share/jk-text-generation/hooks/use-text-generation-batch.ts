@@ -2,6 +2,7 @@ import type { Task } from '../types'
 import type { PromptConfig } from '@/models/debug'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { BATCH_CONCURRENCY } from '@/config'
+import { getPublic, postPublic } from '@/service/base'
 import { TaskStatus } from '../types'
 
 type BatchNotify = (payload: { type: 'error' | 'info', message: string }) => void
@@ -18,6 +19,44 @@ type RunBatchCallbacks = {
 }
 
 const GROUP_SIZE = BATCH_CONCURRENCY
+
+// TODO: replace with your real permission check endpoint
+const BATCH_RUN_PERMISSION_CHECK_PATH = '/api/v1/permission/credits/check'
+const DEDUCT_PATH = '/api/v1/permission/credits/deduct'
+
+type BatchRunPermissionResponse = {
+  allowed: boolean
+}
+
+export const checkBatchRunPermission = async (): Promise<boolean> => {
+  try {
+    const res = await getPublic<BatchRunPermissionResponse>(BATCH_RUN_PERMISSION_CHECK_PATH)
+    return res.allowed
+  }
+  catch {
+    return true
+  }
+}
+
+export const deductBatchRun = async (amount: number, bizId: string): Promise<boolean> => {
+  try {
+    const res = await postPublic<BatchRunPermissionResponse>(DEDUCT_PATH, {
+      body: { amount, biz_id: bizId },
+    })
+    return res.allowed
+  }
+  catch {
+    return false
+  }
+}
+
+const deductSessionRun = (totalTokens?: number, conversationId?: string) => {
+  if (!conversationId || !totalTokens || totalTokens <= 0)
+    return
+
+  const bizId = `${conversationId}_${Date.now()}`
+  void deductBatchRun(totalTokens, bizId)
+}
 
 export const useTextGenerationBatch = ({
   promptConfig,
@@ -194,7 +233,9 @@ export const useTextGenerationBatch = ({
     return true
   }, [checkBatchInputs, notify, promptConfig, t, updateAllTaskList, updateBatchCompletionRes])
 
-  const handleCompleted = useCallback((completionRes: string, taskId?: number, isSuccess?: boolean) => {
+  const handleCompleted = useCallback((completionRes: string, taskId?: number, isSuccess?: boolean, totalTokens?: number, conversationId?: string) => {
+    deductSessionRun(totalTokens, conversationId)
+
     if (!taskId)
       return
 
