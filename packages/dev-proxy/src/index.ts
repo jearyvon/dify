@@ -6,7 +6,7 @@ export {
   resolveDevProxyServerOptions,
 } from './config'
 export { rewriteCookieHeaderForUpstream, rewriteSetCookieHeadersForLocal, toLocalCookieName } from './cookies'
-export { buildUpstreamUrl, createDevProxyApp, isAllowedDevOrigin, isAllowedLocalDevOrigin } from './server'
+export { buildUpstreamUrl, createDevProxyApp, isAllowedDevOrigin, isAllowedLocalDevOrigin, resolvePassthroughAbsoluteUrl } from './server'
 export type {
   CookieNameMatcher,
   CookieRewriteOptions,

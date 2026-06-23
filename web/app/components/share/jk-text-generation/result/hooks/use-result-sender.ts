@@ -27,7 +27,7 @@ type UseResultSenderOptions = {
   isPC: boolean
   isWorkflow: boolean
   notify: Notify
-  onCompleted: (completionRes: string, taskId?: number, success?: boolean) => void
+  onCompleted: (completionRes: string, taskId?: number, success?: boolean, totalTokens?: number, workflowTaskId?: string) => void
   onRunStart: () => void
   onShowRes: () => void
   promptConfig: PromptConfig | null

@@ -1,5 +1,6 @@
 'use client'
 import type { FC } from 'react'
+import type { ResultInputValue } from './result-request'
 import type { PromptConfig } from '@/models/debug'
 import type { SiteInfo } from '@/models/share'
 import type { AppSourceType } from '@/service/share'
@@ -26,14 +27,14 @@ type IResultProps = {
   isShowTextToSpeech: boolean
   promptConfig: PromptConfig | null
   moreLikeThisEnabled: boolean
-  inputs: Record<string, any>
+  inputs: Record<string, ResultInputValue>
   controlSend?: number
   controlRetry?: number
   controlStopResponding?: number
   onShowRes: () => void
   handleSaveMessage: (messageId: string) => void
   taskId?: number
-  onCompleted: (completionRes: string, taskId?: number, success?: boolean) => void
+  onCompleted: (completionRes: string, taskId?: number, success?: boolean, totalTokens?: number, workflowTaskId?: string) => void
   visionConfig: VisionSettings
   completionFiles: VisionFile[]
   siteInfo: SiteInfo | null
@@ -48,6 +49,7 @@ const Result: FC<IResultProps> = ({ isWorkflow, isCallBatchAPI, isPC, isMobile, 
   const notify = useCallback(({ type, message }: { type: 'error' | 'info' | 'success' | 'warning', message: string }) => {
     toast(message, { type })
   }, [])
+  // eslint-disable-next-line react/use-state -- custom hook returning a controller object, not React.useState
   const runState = useResultRunState({
     appId,
     appSourceType,

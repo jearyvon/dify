@@ -1,7 +1,7 @@
 import type { Task } from '../types'
 import type { PromptConfig } from '@/models/debug'
 import { useCallback, useMemo, useRef, useState } from 'react'
-import { BATCH_CONCURRENCY } from '@/config'
+import { BATCH_CONCURRENCY, IS_DEV } from '@/config'
 import { getPublic, postPublic } from '@/service/base'
 import { TaskStatus } from '../types'
 
@@ -20,41 +20,56 @@ type RunBatchCallbacks = {
 
 const GROUP_SIZE = BATCH_CONCURRENCY
 
+const BASE_URL = IS_DEV ? 'http://localhost:8000/api' : ''
 // TODO: replace with your real permission check endpoint
-const BATCH_RUN_PERMISSION_CHECK_PATH = '/api/v1/permission/credits/check'
-const DEDUCT_PATH = '/api/v1/permission/credits/deduct'
+const BATCH_RUN_PERMISSION_CHECK_PATH = `${BASE_URL}/v1/permission/credits/check`
+const DEDUCT_PATH = `${BASE_URL}/v1/permission/credits/deduct`
 
 type BatchRunPermissionResponse = {
-  allowed: boolean
+  code: number
+  data: {
+    allowed: boolean
+    message: string
+  }
 }
 
+type DeductBatchRunResponse = {
+  code: number
+  data: {
+    allowed: boolean
+    message: string
+  }
+}
 export const checkBatchRunPermission = async (): Promise<boolean> => {
   try {
     const res = await getPublic<BatchRunPermissionResponse>(BATCH_RUN_PERMISSION_CHECK_PATH)
-    return res.allowed
-  }
-  catch {
-    return true
-  }
-}
-
-export const deductBatchRun = async (amount: number, bizId: string): Promise<boolean> => {
-  try {
-    const res = await postPublic<BatchRunPermissionResponse>(DEDUCT_PATH, {
-      body: { amount, biz_id: bizId },
-    })
-    return res.allowed
+    if (res.code === 200 && res.data.allowed) {
+      return true
+    }
+    return false
   }
   catch {
     return false
   }
 }
 
-const deductSessionRun = (totalTokens?: number, conversationId?: string) => {
-  if (!conversationId || !totalTokens || totalTokens <= 0)
+export const deductBatchRun = async (amount: number, bizId: string): Promise<boolean> => {
+  try {
+    const res = await postPublic<DeductBatchRunResponse>(DEDUCT_PATH, {
+      body: { amount, biz_id: bizId },
+    })
+    return res.code === 200 && res.data.allowed
+  }
+  catch {
+    return false
+  }
+}
+
+const deductSessionRun = (totalTokens?: number, workflowTaskId?: string) => {
+  if (!workflowTaskId || !totalTokens || totalTokens <= 0)
     return
 
-  const bizId = `${conversationId}_${Date.now()}`
+  const bizId = `${workflowTaskId}_${Date.now()}`
   void deductBatchRun(totalTokens, bizId)
 }
 
@@ -233,8 +248,8 @@ export const useTextGenerationBatch = ({
     return true
   }, [checkBatchInputs, notify, promptConfig, t, updateAllTaskList, updateBatchCompletionRes])
 
-  const handleCompleted = useCallback((completionRes: string, taskId?: number, isSuccess?: boolean, totalTokens?: number, conversationId?: string) => {
-    deductSessionRun(totalTokens, conversationId)
+  const handleCompleted = useCallback((completionRes: string, taskId?: number, isSuccess?: boolean, totalTokens?: number, workflowTaskId?: string) => {
+    deductSessionRun(totalTokens, workflowTaskId)
 
     if (!taskId)
       return

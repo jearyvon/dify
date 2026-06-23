@@ -2,11 +2,58 @@
  * @vitest-environment node
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { buildUpstreamUrl, createDevProxyApp, isAllowedDevOrigin } from './server'
+import { buildUpstreamUrl, createDevProxyApp, isAllowedDevOrigin, resolvePassthroughAbsoluteUrl } from './server'
 
 describe('dev proxy server', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+  })
+
+  // Scenario: embedded absolute URLs should bypass the configured upstream target.
+  it('should forward embedded absolute URLs directly when passthrough is enabled', async () => {
+    // Arrange
+    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({ allowed: true }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    }))
+    const app = createDevProxyApp({
+      routes: [
+        {
+          paths: '/api',
+          target: 'https://cloud.example.com',
+        },
+      ],
+      fetchImpl,
+    })
+
+    // Act
+    const response = await app.request(
+      'http://127.0.0.1:5001/api/http://localhost:8000/api/v1/permission/credits/check?foo=bar',
+      {
+        method: 'GET',
+        headers: {
+          Origin: 'http://localhost:3000',
+        },
+      },
+    )
+
+    // Assert
+    expect(fetchImpl).toHaveBeenCalledTimes(1)
+    expect(fetchImpl).toHaveBeenCalledWith(
+      new URL('http://localhost:8000/api/v1/permission/credits/check?foo=bar'),
+      expect.objectContaining({
+        method: 'GET',
+      }),
+    )
+    expect(await response.json()).toEqual({ allowed: true })
+  })
+
+  it('should resolve embedded absolute URLs from request paths', () => {
+    expect(resolvePassthroughAbsoluteUrl(
+      '/api/http://localhost:8000/api/v1/permission/credits/check',
+      '?foo=bar',
+    )?.href).toBe('http://localhost:8000/api/v1/permission/credits/check?foo=bar')
+    expect(resolvePassthroughAbsoluteUrl('/api/messages', '?page=1')).toBeNull()
   })
 
   // Scenario: target paths should not be duplicated when the incoming route already includes them.

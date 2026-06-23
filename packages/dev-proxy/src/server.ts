@@ -72,6 +72,21 @@ const applyCorsHeaders = (
   appendHeaderValue(headers, 'Vary', 'Origin')
 }
 
+export const resolvePassthroughAbsoluteUrl = (pathname: string, search = '') => {
+  const match = pathname.match(/\/(https?:\/\/.+)$/)
+  if (!match?.[1])
+    return null
+
+  try {
+    const targetUrl = new URL(match[1])
+    targetUrl.search = search
+    return targetUrl
+  }
+  catch {
+    return null
+  }
+}
+
 export const buildUpstreamUrl = (target: string, requestPath: string, search = '') => {
   const targetUrl = new URL(target)
   const normalizedTargetPath = targetUrl.pathname === '/' ? '' : targetUrl.pathname.replace(/\/$/, '')
@@ -151,8 +166,11 @@ const proxyRequest = async (
   allowedOrigins: DevProxyCorsAllowedOrigins,
 ) => {
   const requestUrl = new URL(context.req.url)
-  const targetUrl = buildUpstreamUrl(route.target, requestUrl.pathname, requestUrl.search)
-  const requestHeaders = createProxyRequestHeaders(context.req.raw, targetUrl, route.cookieRewrite)
+  const passthroughUrl = resolvePassthroughAbsoluteUrl(requestUrl.pathname, requestUrl.search)
+  const targetUrl = passthroughUrl
+    ?? buildUpstreamUrl(route.target, requestUrl.pathname, requestUrl.search)
+  const cookieRewrite = passthroughUrl ? false : route.cookieRewrite
+  const requestHeaders = createProxyRequestHeaders(context.req.raw, targetUrl, cookieRewrite)
   const requestInit: RequestInit & { duplex?: 'half' } = {
     method: context.req.method,
     headers: requestHeaders,
@@ -169,7 +187,7 @@ const proxyRequest = async (
     upstreamResponse,
     context.req.header('origin'),
     allowedOrigins,
-    route.cookieRewrite,
+    cookieRewrite,
   )
 
   return new Response(upstreamResponse.body, {

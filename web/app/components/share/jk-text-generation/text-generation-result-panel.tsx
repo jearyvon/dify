@@ -22,7 +22,7 @@ type TextGenerationResultPanelProps = {
   controlSend: number
   controlStopResponding: number
   exportRes: Record<string, string>[]
-  handleCompleted: (completionRes: string, taskId?: number, isSuccess?: boolean) => void
+  handleCompleted: (completionRes: string, taskId?: number, isSuccess?: boolean, totalTokens?: number, workflowTaskId?: string) => void
   handleRetryAllFailedTask: () => void
   handleSaveMessage: (messageId: string) => Promise<void>
   inputs: Record<string, InputValueTypes>

@@ -17,7 +17,7 @@ type CreateWorkflowStreamHandlersParams = {
   isTimedOut: () => boolean
   markEnded: () => void
   notify: Notify
-  onCompleted: (completionRes: string, taskId?: number, success?: boolean, totalTokens?: number) => void
+  onCompleted: (completionRes: string, taskId?: number, success?: boolean, totalTokens?: number, workflowTaskId?: string) => void
   resetRunState: () => void
   setCompletionRes: (res: string) => void
   setCurrentTaskId: Dispatch<SetStateAction<string | null>>
@@ -273,18 +273,18 @@ export const createWorkflowStreamHandlers = ({
 }: CreateWorkflowStreamHandlersParams): IOtherOptions => {
   let tempMessageId = ''
 
-  const finishWithFailure = (totalTokens = 0) => {
+  const finishWithFailure = (totalTokens = 0, workflowTaskId?: string) => {
     setRespondingFalse()
     resetRunState()
-    onCompleted(getCompletionRes(), taskId, false, totalTokens)
+    onCompleted(getCompletionRes(), taskId, false, totalTokens, workflowTaskId)
     markEnded()
   }
 
-  const finishWithSuccess = (totalTokens = 0) => {
+  const finishWithSuccess = (totalTokens = 0, workflowTaskId?: string) => {
     setRespondingFalse()
     resetRunState()
     setMessageId(tempMessageId)
-    onCompleted(getCompletionRes(), taskId, true, totalTokens)
+    onCompleted(getCompletionRes(), taskId, true, totalTokens, workflowTaskId)
     markEnded()
   }
 
@@ -338,14 +338,14 @@ export const createWorkflowStreamHandlers = ({
       const workflowStatus = data.status as WorkflowRunningStatus | undefined
       if (workflowStatus === WorkflowRunningStatus.Stopped) {
         setWorkflowProcessData(applyWorkflowFinishedState(getWorkflowProcessData(), WorkflowRunningStatus.Stopped))
-        finishWithFailure(data.total_tokens)
+        finishWithFailure(data.total_tokens, data.id)
         return
       }
 
       if (data.error) {
         notify({ type: 'error', message: data.error })
         setWorkflowProcessData(applyWorkflowFinishedState(getWorkflowProcessData(), WorkflowRunningStatus.Failed))
-        finishWithFailure(data.total_tokens)
+        finishWithFailure(data.total_tokens, data.id)
         return
       }
 
@@ -361,8 +361,7 @@ export const createWorkflowStreamHandlers = ({
           }))
         }
       }
-
-      finishWithSuccess(data.total_tokens)
+      finishWithSuccess(data.total_tokens, data.id)
     },
     onTextChunk: ({ data: { text } }) => {
       setWorkflowProcessData(appendResultText(getWorkflowProcessData(), text))

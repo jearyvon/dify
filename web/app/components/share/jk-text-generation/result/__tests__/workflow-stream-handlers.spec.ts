@@ -553,7 +553,7 @@ describe('createWorkflowStreamHandlers', () => {
       expect.objectContaining({ isPublicAPI: true }),
     )
     expect(setup.messageId()).toBe('run-1')
-    expect(setup.onCompleted).toHaveBeenCalledWith('{"answer":"Hello"}', 3, true)
+    expect(setup.onCompleted).toHaveBeenCalledWith('{"answer":"Hello"}', 3, true, 0, 'run-1')
     expect(setup.setRespondingFalse).toHaveBeenCalled()
     expect(setup.resetRunState).toHaveBeenCalled()
   })
@@ -632,7 +632,7 @@ describe('createWorkflowStreamHandlers', () => {
       type: 'error',
       message: 'failed',
     })
-    expect(failureSetup.onCompleted).toHaveBeenCalledWith('', 3, false)
+    expect(failureSetup.onCompleted).toHaveBeenCalledWith('', 3, false, 0, 'run-2')
   })
 
   it('should cover existing workflow starts, stopped runs, and non-string outputs', () => {
@@ -718,7 +718,7 @@ describe('createWorkflowStreamHandlers', () => {
 
     expect(existingProcess.status).toBe(WorkflowRunningStatus.Stopped)
     expect(existingProcess.tracing[0]!.status).toBe(NodeRunningStatus.Stopped)
-    expect(setup.onCompleted).toHaveBeenCalledWith('', 5, false)
+    expect(setup.onCompleted).toHaveBeenCalledWith('', 5, false, 0, 'run-existing')
 
     const noOutputSetup = setupHandlers()
     const noOutputHandlers = noOutputSetup.handlers as Required<Pick<IOtherOptions, 'onWorkflowStarted' | 'onWorkflowFinished' | 'onTextReplace'>>

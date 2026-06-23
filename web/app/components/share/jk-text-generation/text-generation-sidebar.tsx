@@ -69,11 +69,10 @@ const TextGenerationSidebar: FC<TextGenerationSidebarProps> = ({
         isInstalledApp && 'rounded-l-2xl',
       )}
     >
-      <div className={cn('shrink-0 space-y-4 border-b border-divider-subtle', isPC ? 'bg-components-panel-bg p-10 pb-0' : 'p-4 pb-0')}>
+      <div className={cn('shrink-0 space-y-4 border-b border-divider-subtle', isPC ? 'bg-components-panel-bg p-4 pb-0' : 'p-4 pb-0')}>
         {siteInfo.description && (
           <div className="system-xs-regular text-text-tertiary">{siteInfo.description}</div>
         )}
-        <div className="h-5 w-full py-3"></div>
         {/* <TabHeader
           items={[
             { id: 'create', name: t('generation.tabs.create', { ns: 'share' }) },
