@@ -24,8 +24,6 @@ TAR_EXCLUDES=(
     --exclude='./api'
     --exclude='./dify-agent'
     --exclude='./node_modules'
-    --exclude='./packages'
-    --exclude='./sdks'
 )
 
 # Prefer GNU tar when available (e.g. brew install gnu-tar on macOS).
