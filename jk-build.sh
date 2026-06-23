@@ -104,7 +104,7 @@ with_module_dockerignore() {
 
 build_web() {
     echo "Building web image: ${WEB_IMAGE}"
-    with_module_dockerignore web docker build \
+    docker build \
     --progress=plain \
     --build-arg NEXT_PUBLIC_BASE_PATH=/web \
     --build-arg NEXT_PUBLIC_ALLOW_EMBED=true \
@@ -115,7 +115,7 @@ build_web() {
 
 build_api() {
     echo "Building api image: ${API_IMAGE}"
-    with_module_dockerignore api docker build -f api/Dockerfile.jk -t "${API_IMAGE}" .
+    docker build -f api/Dockerfile.jk -t "${API_IMAGE}" .
 }
 
 build_all() {
