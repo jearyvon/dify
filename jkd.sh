@@ -15,7 +15,8 @@ usage() {
   -v <version>  指定 jk_web / jk_api 镜像版本（对应 JK_WEB_VERSION、JK_API_VERSION）
                 不传则使用 docker-compose-jk.yaml 或 docker/.env 中的默认值
   -e <env>      指定运行环境：dev | preview | prod（仅 start / restart 支持）
-                会将 docker/.env.<env> 复制为 docker/.env 后再执行命令
+                会将 docker/.env.jk.<env> 复制为 docker/.env 后再执行命令
+                不传 -e 时不修改 docker/.env，直接使用现有配置
 
 命令:
   start    启动服务
