@@ -13,7 +13,10 @@ server {
       proxy_pass http://${JK_API_UPSTREAM};
       include proxy.conf;
     }
-
+    location /api/v1/system {
+      proxy_pass http://${JK_API_UPSTREAM};
+      include proxy.conf;
+    }
     location /api {
       proxy_pass http://api:5001;
       include proxy.conf;
