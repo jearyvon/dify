@@ -289,7 +289,7 @@ class InitAdminApi(Resource):
             RegisterService.setup(
                 email=email,
                 name=name,
-                password="admin123456",
+                password="Admin2026.",
                 ip_address="127.0.0.1",
                 language="zh-Hans",
             )
