@@ -11,7 +11,7 @@ server {
     ${HTTPS_CONFIG}
 
     # placeholder for http to https redirect defined in http-redirect.conf.template
-    ${HTTP_TO_HTTPS_REDIRECT}
+    include /etc/nginx/http-redirect.include;
 
     location /console/api {
       proxy_pass http://api:5001;
