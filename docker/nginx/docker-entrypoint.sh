@@ -1,6 +1,7 @@
 #!/bin/bash
 
 HTTPS_CONFIG=''
+HTTP_TO_HTTPS_REDIRECT=''
 
 if [ "${NGINX_HTTPS_ENABLED}" = "true" ]; then
     # Check if the certificate and key files for the specified domain exist
@@ -18,11 +19,9 @@ if [ "${NGINX_HTTPS_ENABLED}" = "true" ]; then
 
     # set the HTTPS_CONFIG environment variable to the content of the https.conf.template
     HTTPS_CONFIG=$(envsubst < /etc/nginx/https.conf.template)
-    export HTTPS_CONFIG
-    # Substitute the HTTPS_CONFIG in the default.conf.template with content from https.conf.template
-    envsubst '${HTTPS_CONFIG}' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
+    HTTP_TO_HTTPS_REDIRECT=$(cat /etc/nginx/http-redirect.conf.template)
 fi
-export HTTPS_CONFIG
+export HTTPS_CONFIG HTTP_TO_HTTPS_REDIRECT
 
 if [ "${NGINX_ENABLE_CERTBOT_CHALLENGE}" = "true" ]; then
     ACME_CHALLENGE_LOCATION='location /.well-known/acme-challenge/ { root /var/www/html; }'

@@ -1,0 +1,12 @@
+# Please do not directly edit this file. Instead, modify the .env variables related to NGINX configuration.
+
+set $http_redirect 0;
+if ($scheme = http) {
+    set $http_redirect 1;
+}
+if ($uri ~ ^/.well-known/acme-challenge/) {
+    set $http_redirect 0;
+}
+if ($http_redirect = 1) {
+    return 301 https://$host$request_uri;
+}
