@@ -18,9 +18,9 @@ if [ "${NGINX_HTTPS_ENABLED}" = "true" ]; then
 
     # set the HTTPS_CONFIG environment variable to the content of the https.conf.template
     HTTPS_CONFIG=$(envsubst < /etc/nginx/https.conf.template)
-    export HTTPS_CONFIG
-    # Substitute the HTTPS_CONFIG in the default.conf.template with content from https.conf.template
-    envsubst '${HTTPS_CONFIG}' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
+    cat /etc/nginx/http-redirect.conf.template > /etc/nginx/http-redirect.include
+else
+    echo '# HTTP to HTTPS redirect disabled' > /etc/nginx/http-redirect.include
 fi
 export HTTPS_CONFIG
 
@@ -31,12 +31,13 @@ else
 fi
 export ACME_CHALLENGE_LOCATION
 
-env_vars=$(printenv | cut -d= -f1 | sed 's/^/$/g' | paste -sd, -)
+DEFAULT_CONF_VARS='$NGINX_PORT $NGINX_SERVER_NAME $ACME_CHALLENGE_LOCATION $HTTPS_CONFIG $JK_API_UPSTREAM $NGINX_SOCKET_IO_UPSTREAM'
+NGINX_CONF_VARS='$NGINX_WORKER_PROCESSES $NGINX_KEEPALIVE_TIMEOUT $NGINX_CLIENT_MAX_BODY_SIZE'
+PROXY_CONF_VARS='$NGINX_PROXY_READ_TIMEOUT $NGINX_PROXY_SEND_TIMEOUT'
 
-envsubst "$env_vars" < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
-envsubst "$env_vars" < /etc/nginx/proxy.conf.template > /etc/nginx/proxy.conf
-
-envsubst "$env_vars" < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
+envsubst "$NGINX_CONF_VARS" < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+envsubst "$PROXY_CONF_VARS" < /etc/nginx/proxy.conf.template > /etc/nginx/proxy.conf
+envsubst "$DEFAULT_CONF_VARS" < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
 
 # Start Nginx using the default entrypoint
 exec nginx -g 'daemon off;'
