@@ -4,6 +4,7 @@ import type { InstalledApp } from '@/models/explore'
 import { cn } from '@langgenius/dify-ui/cn'
 import {
   useEffect,
+  useRef,
   useState,
 } from 'react'
 import {
@@ -17,7 +18,6 @@ import useBreakpoints, { MediaType } from '@/hooks/use-breakpoints'
 import useDocumentTitle from '@/hooks/use-document-title'
 import ChatWrapper from './chat-wrapper'
 import Header from './header'
-import HeaderInMobile from './header-in-mobile'
 import Sidebar from './sidebar'
 
 type ChatWithHistoryProps = {
@@ -54,7 +54,7 @@ const ChatWithHistory: FC<ChatWithHistoryProps> = ({
       className,
     )}
     >
-      {!isMobile && (
+      {/* {!isMobile && (
         <div className={cn(
           'flex w-[236px] flex-col p-1 pr-0 transition-all duration-200 ease-in-out',
           isSidebarCollapsed && 'w-0 overflow-hidden p-0!',
@@ -65,7 +65,7 @@ const ChatWithHistory: FC<ChatWithHistoryProps> = ({
       )}
       {isMobile && (
         <HeaderInMobile />
-      )}
+      )} */}
       <div className={cn('relative grow p-2', isMobile && 'h-[calc(100%-56px)] p-0')}>
         {isSidebarCollapsed && (
           <div
@@ -145,8 +145,16 @@ const ChatWithHistoryWrap: FC<ChatWithHistoryWrapProps> = ({
     initUserVariables,
   } = useChatWithHistory(installedAppInfo)
 
+  const didAutoNewConversationRef = useRef(false)
+  useEffect(() => {
+    if (!appId || !appParams || didAutoNewConversationRef.current)
+      return
+    didAutoNewConversationRef.current = true
+    handleNewConversation()
+  }, [appId, appParams, handleNewConversation])
+
   return (
-    <ChatWithHistoryContext value={{
+    <ChatWithHistoryContext.Provider value={{
       appData,
       appParams,
       appMeta,
@@ -189,7 +197,7 @@ const ChatWithHistoryWrap: FC<ChatWithHistoryWrapProps> = ({
     }}
     >
       <ChatWithHistory className={className} />
-    </ChatWithHistoryContext>
+    </ChatWithHistoryContext.Provider>
   )
 }
 
